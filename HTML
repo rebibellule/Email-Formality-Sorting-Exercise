@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Formality Drag-and-Drop Activity</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background:#f9f9f9; }
+  h1, h2 { text-align:center; }
+  .container { display:flex; flex-wrap:wrap; justify-content: space-around; margin-top:20px; }
+  .box, .draggables { border: 2px dashed #888; border-radius:5px; padding:10px; margin:10px; min-width:200px; min-height:200px; background:white; }
+  .box { flex:1; max-width:30%; position:relative; }
+  .box h3 { text-align:center; }
+  .draggable { border:1px solid #ccc; border-radius:4px; padding:5px; margin:5px; background:#eee; cursor:grab; }
+  .correct { background-color: #c8e6c9 !important; }
+  .incorrect { background-color: #ffcdd2 !important; }
+  .hint { font-size: 0.9em; color:#555; margin-top:5px; display:none; }
+  .model-email { display:none; border-top:1px solid #aaa; margin-top:10px; padding-top:5px; font-size:0.95em; background:#f1f1f1; padding:5px; border-radius:4px; }
+  button { padding:10px 15px; margin:10px; border:none; background:#4CAF50; color:white; border-radius:4px; cursor:pointer; }
+  button:hover { background:#45a049; }
+</style>
+</head>
+<body>
+
+<h1>Email Formality Drag-and-Drop Activity</h1>
+<p>Drag each sentence into the box that matches the tone of the email: <strong>Formal</strong>, <strong>Friendly Professional</strong>, or <strong>Friendly Informal</strong>. Click "Check" to see feedback.</p>
+
+<div class="container draggables" id="draggables">
+  <div class="draggable" draggable="true" data-category="Formal">I hope this message finds you well.</div>
+  <div class="draggable" draggable="true" data-category="FriendlyProfessional">Let’s get together next week and see what we can come up with.</div>
+  <div class="draggable" draggable="true" data-category="FriendlyInformal">Need your costing for the project too – yesterday, if not sooner 😉</div>
+  <div class="draggable" draggable="true" data-category="Formal">Best regards</div>
+  <div class="draggable" draggable="true" data-category="FriendlyProfessional">Cheers</div>
+  <div class="draggable" draggable="true" data-category="FriendlyInformal">Ciao!</div>
+  <div class="draggable" draggable="true" data-category="FriendlyProfessional">I suggest we have a bit of a rethink.</div>
+</div>
+
+<div class="container">
+  <div class="box" data-category="Formal">
+    <h3>Formal Email</h3>
+    <div class="model-email" id="formal-model">
+      Dear Sir/Madam,<br><br>
+      I hope this message finds you well.<br>
+      Best regards
+    </div>
+  </div>
+  <div class="box" data-category="FriendlyProfessional">
+    <h3>Friendly Professional Email</h3>
+    <div class="model-email" id="friendly-pro-model">
+      Hi [Colleague],<br><br>
+      Let’s get together next week and see what we can come up with.<br>
+      I suggest we have a bit of a rethink.<br>
+      Cheers
+    </div>
+  </div>
+  <div class="box" data-category="FriendlyInformal">
+    <h3>Friendly Informal Email</h3>
+    <div class="model-email" id="informal-model">
+      Hey [Friend],<br><br>
+      Need your costing for the project too – yesterday, if not sooner 😉<br>
+      Ciao!
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;">
+  <button onclick="checkAnswers()">Check</button>
+  <button onclick="resetActivity()">Reset</button>
+</div>
+
+<p id="final-msg" style="text-align:center; display:none; font-style:italic; margin-top:10px;">Still unsure why your version is different? No problem--ask your teacher! It's perfect for classroom discussion.</p>
+
+<script>
+const draggables = document.querySelectorAll('.draggable');
+const boxes = document.querySelectorAll('.box');
+
+draggables.forEach(item => {
+  item.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text/plain', e.target.textContent);
+  });
+});
+
+boxes.forEach(box => {
+  box.addEventListener('dragover', e => e.preventDefault());
+  box.addEventListener('drop', e => {
+    e.preventDefault();
+    const text = e.dataTransfer.getData('text/plain');
+    const draggedItem = Array.from(draggables).find(d => d.textContent === text);
+    if(draggedItem) {
+      box.appendChild(draggedItem);
+    }
+  });
+});
+
+function checkAnswers() {
+  draggables.forEach(item => {
+    const parentBox = item.parentElement.getAttribute('data-category');
+    const correct = item.getAttribute('data-category') === parentBox;
+    item.classList.remove('correct','incorrect');
+    item.classList.add(correct ? 'correct' : 'incorrect');
+    if(!correct) {
+      let hint = "";
+      const cat = item.getAttribute('data-category');
+      if(cat==="Formal") hint="Too casual for a formal email.";
+      if(cat==="FriendlyProfessional") hint="This fits a relaxed colleague, not too formal or casual.";
+      if(cat==="FriendlyInformal") hint="Watch out for slang, emojis, or jokes.";
+      item.title = hint; // hover hint
+    } else {
+      item.title = "";
+    }
+  });
+  // Show model emails
+  document.getElementById('formal-model').style.display='block';
+  document.getElementById('friendly-pro-model').style.display='block';
+  document.getElementById('informal-model').style.display='block';
+  // Show final message
+  document.getElementById('final-msg').style.display='block';
+}
+
+function resetActivity() {
+  const container = document.getElementById('draggables');
+  draggables.forEach(item => {
+    container.appendChild(item);
+    item.classList.remove('correct','incorrect');
+    item.title="";
+  });
+  document.getElementById('formal-model').style.display='none';
+  document.getElementById('friendly-pro-model').style.display='none';
+  document.getElementById('informal-model').style.display='none';
+  document.getElementById('final-msg').style.display='none';
+}
+</script>
+
+</body>
+</html>
